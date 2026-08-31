@@ -1,6 +1,15 @@
 import os
 import hashlib
 import time
+import logging
+
+# Configure the logging artifact
+logging.basicConfig(
+    filename='fim_alerts.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 def calculate_file_hash(filepath):
     """Calculates the SHA-256 hash of a file."""
@@ -67,19 +76,25 @@ def monitor_environment(target_folder, baseline_file="baseline.txt"):
                     
                     # If it's a new file
                     if filepath not in baseline_dict:
-                        print(f"  [!] NEW FILE DETECTED: {filepath}")
+                        alert = f"NEW FILE DETECTED: {filepath}"
+                        print(f"  [!] {alert}")
+                        logging.warning(alert)
                         baseline_dict[filepath] = live_hash # Update dictionary to suppress duplicate alerts
                         
                     # If the file exists but the hash changed
                     elif baseline_dict[filepath] != live_hash:
-                        print(f"  [!] FILE MODIFIED: {filepath}")
+                        alert = f"FILE MODIFIED: {filepath}"
+                        print(f"  [!] {alert}")
+                        logging.warning(alert)
                         baseline_dict[filepath] = live_hash
                         
             # Step 2: Check for deleted files
             deleted_files = []
             for filepath in baseline_dict:
                 if filepath not in current_files:
-                    print(f"  [!] FILE DELETED: {filepath}")
+                    alert = f"FILE DELETED: {filepath}"
+                    print(f"  [!] {alert}")
+                    logging.warning(alert)
                     deleted_files.append(filepath)
                     
             # Remove deleted files from dictionary so we don't alert twice
